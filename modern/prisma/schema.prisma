@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  role          String   @default("operator")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  auditEvents   AuditEvent[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  @@unique([providerId, accountId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@index([identifier])
+}
+
+model Driver {
+  id                 String   @id @default(cuid())
+  fullName           String
+  documentNumber     String   @unique
+  licenseNumber      String
+  licenseExpiresAt   DateTime @db.Date
+  phone              String?
+  email              String?
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  fuecs              Fuec[]   @relation("PrimaryDriver")
+  @@index([fullName])
+}
+
+model Vehicle {
+  id                 String   @id @default(cuid())
+  plate              String   @unique
+  modelYear          Int
+  brand              String
+  vehicleClass       String
+  internalNumber     String
+  transportCard      String
+  transportCardExpiry DateTime? @db.Date
+  carrierName        String?
+  carrierTaxId       String?
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  fuecs              Fuec[]
+}
+
+model Contract {
+  id                 String   @id @default(cuid())
+  contractNumber     String   @unique
+  clientName         String
+  clientTaxId        String
+  purpose            String   @db.Text
+  contractYear       Int
+  representative    String
+  representativeId  String
+  representativePhone String
+  representativeAddress String
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  fuecs              Fuec[]
+}
+
+model Fuec {
+  id                 String   @id @default(cuid())
+  number             Int      @unique
+  contractId         String
+  contract           Contract @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  vehicleId          String
+  vehicle            Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  primaryDriverId    String
+  primaryDriver      Driver   @relation("PrimaryDriver", fields: [primaryDriverId], references: [id], onDelete: Restrict)
+  clientName         String
+  clientTaxId        String
+  contractPurpose    String   @db.Text
+  origin             String
+  destination        String   @db.Text
+  carrierName        String
+  startsAt           DateTime @db.Date
+  endsAt             DateTime @db.Date
+  additionalDrivers  Json?
+  representative     String
+  representativeId   String
+  representativePhone String
+  representativeAddress String
+  issuedYear         Int
+  createdById        String
+  status             String   @default("draft")
+  pdfObjectKey       String?
+  qrToken            String   @unique @default(cuid())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  @@index([startsAt, endsAt])
+  @@index([status, number])
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
