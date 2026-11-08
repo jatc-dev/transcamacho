@@ -6,7 +6,11 @@ require __DIR__ . '/../vendor/autoload.php';
 use App\Database;
 use App\Controllers\AuthController;
 use App\Controllers\ContratoController;
+use App\Controllers\VehiculoController;
+use App\Controllers\ConductorController;
+use App\Controllers\UsuarioController;
 use App\Controllers\FuecController;
+use App\Controllers\FuecDownloadController;
 use App\Controllers\PanelController;
 
 // Iniciar sesión segura
@@ -44,15 +48,36 @@ $routes = [
         '/panel' => [PanelController::class, 'index'],
         '/login' => [AuthController::class, 'login'],
         '/logout' => [AuthController::class, 'logout'],
+
+        // Contratos
         '/contratos' => [ContratoController::class, 'list'],
         '/contratos/crear' => [ContratoController::class, 'create'],
-        '/contratos/eliminar' => [ContratoController::class, 'delete'],
+
+        // Vehículos
+        '/vehiculos' => [VehiculoController::class, 'list'],
+        '/vehiculos/crear' => [VehiculoController::class, 'create'],
+        '/vehiculos/buscar' => [VehiculoController::class, 'search'],
+
+        // Conductores
+        '/conductores' => [ConductorController::class, 'list'],
+        '/conductores/crear' => [ConductorController::class, 'create'],
+        '/conductores/buscar' => [ConductorController::class, 'search'],
+
+        // Usuarios (solo administradores)
+        '/usuarios' => [UsuarioController::class, 'list'],
+        '/usuarios/crear' => [UsuarioController::class, 'create'],
+
+        // FUEC
         '/fuec' => [FuecController::class, 'list'],
         '/fuec/crear' => [FuecController::class, 'create'],
+        '/fuec/buscar' => [FuecDownloadController::class, 'search'],
     ],
     'POST' => [
         '/login' => [AuthController::class, 'authenticate'],
         '/contratos' => [ContratoController::class, 'store'],
+        '/vehiculos' => [VehiculoController::class, 'store'],
+        '/conductores' => [ConductorController::class, 'store'],
+        '/usuarios' => [UsuarioController::class, 'store'],
         '/fuec' => [FuecController::class, 'store'],
     ],
 ];
@@ -72,6 +97,36 @@ if (isset($routes[$method][$uri])) {
 } elseif (preg_match('#^/contratos/(\d+)/eliminar$#', $uri, $m) && $method === 'POST') {
     $handler = [ContratoController::class, 'delete'];
     $routeParams['id'] = (int) $m[1];
+} elseif (preg_match('#^/vehiculos/(\d+)/editar$#', $uri, $m) && $method === 'GET') {
+    $handler = [VehiculoController::class, 'edit'];
+    $routeParams['id'] = (int) $m[1];
+} elseif (preg_match('#^/vehiculos/(\d+)/actualizar$#', $uri, $m) && $method === 'POST') {
+    $handler = [VehiculoController::class, 'update'];
+    $routeParams['id'] = (int) $m[1];
+} elseif (preg_match('#^/vehiculos/(\d+)/eliminar$#', $uri, $m) && $method === 'POST') {
+    $handler = [VehiculoController::class, 'delete'];
+    $routeParams['id'] = (int) $m[1];
+} elseif (preg_match('#^/conductores/(\d+)/editar$#', $uri, $m) && $method === 'GET') {
+    $handler = [ConductorController::class, 'edit'];
+    $routeParams['id'] = (int) $m[1];
+} elseif (preg_match('#^/conductores/(\d+)/actualizar$#', $uri, $m) && $method === 'POST') {
+    $handler = [ConductorController::class, 'update'];
+    $routeParams['id'] = (int) $m[1];
+} elseif (preg_match('#^/conductores/(\d+)/eliminar$#', $uri, $m) && $method === 'POST') {
+    $handler = [ConductorController::class, 'delete'];
+    $routeParams['id'] = (int) $m[1];
+} elseif (preg_match('#^/usuarios/(\d+)/editar$#', $uri, $m) && $method === 'GET') {
+    $handler = [UsuarioController::class, 'edit'];
+    $routeParams['id'] = (int) $m[1];
+} elseif (preg_match('#^/usuarios/(\d+)/actualizar$#', $uri, $m) && $method === 'POST') {
+    $handler = [UsuarioController::class, 'update'];
+    $routeParams['id'] = (int) $m[1];
+} elseif (preg_match('#^/usuarios/(\d+)/eliminar$#', $uri, $m) && $method === 'POST') {
+    $handler = [UsuarioController::class, 'delete'];
+    $routeParams['id'] = (int) $m[1];
+} elseif (preg_match('#^/fuec/([0-9]{4})$#', $uri, $m) && $method === 'GET') {
+    $handler = [FuecDownloadController::class, 'view'];
+    $routeParams['numfuec'] = $m[1];
 }
 
 if ($handler === null) {
@@ -85,14 +140,12 @@ $controllerClass = $handler[0];
 $action = $handler[1];
 $controller = new $controllerClass();
 
-// Verificar que el método exista
 if (!method_exists($controller, $action)) {
     http_response_code(500);
     echo 'Acción no encontrada en el controlador.';
     exit;
 }
 
-// Llamar al método con parámetros de ruta si los hay
 if (!empty($routeParams)) {
     $controller->$action(...array_values($routeParams));
 } else {
