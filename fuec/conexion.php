@@ -12,7 +12,11 @@ function env(string $key, string $default = ''): string
 $databaseUrl = env('DATABASE_URL');
 
 if ($databaseUrl !== '') {
-    $dsn = $databaseUrl;
+    // PDO con pdo_pgsql requiere el prefijo 'pgsql:' (no 'postgresql://')
+    $dsn = str_replace('postgresql://', 'pgsql:', $databaseUrl, $count);
+    if ($count === 0) {
+        $dsn = str_replace('postgres://', 'pgsql:', $databaseUrl);
+    }
     // Extraer usuario y contraseña de la URL si están presentes
     $parsed = parse_url($databaseUrl);
     $username = $parsed['user'] ?? '';
