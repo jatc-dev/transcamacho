@@ -16,6 +16,7 @@ class Database
             $config = require __DIR__ . '/../config/database.php';
 
             $dsn = '';
+            $database = '';
             $username = $config['database']['username'] ?? '';
             $password = $config['database']['password'] ?? '';
 
