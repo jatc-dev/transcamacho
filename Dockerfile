@@ -11,9 +11,6 @@ RUN a2enmod rewrite
 # Copiar la aplicación FUEC al document root
 COPY fuec/ /var/www/html/
 
-# Copiar .htaccess si existe en la raíz (para reglas de SSL/WWW)
-COPY .htaccess /var/www/html/.htaccess 2>/dev/null || true
-
 # Permisos
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
