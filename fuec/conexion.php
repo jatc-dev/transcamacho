@@ -1,10 +1,22 @@
 <?php
 declare(strict_types=1);
 
-$host     = $_ENV['DB_HOST']     ?? getenv('DB_HOST')     ?? 'localhost';
-$database = $_ENV['DB_NAME']     ?? getenv('DB_NAME')     ?? 'u910043597_fuec';
-$username = $_ENV['DB_USER']     ?? getenv('DB_USER')     ?? '';
-$password = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?? '';
+function env(string $key, string $default = ''): string
+{
+    $val = $_ENV[$key] ?? getenv($key) ?? $default;
+    return is_string($val) ? $val : $default;
+}
+
+$host     = env('DB_HOST', 'localhost');
+$database = env('DB_NAME', 'u910043597_fuec');
+$username = env('DB_USER', '');
+$password = env('DB_PASSWORD', '');
+
+if ($host === '' || $database === '' || $username === '') {
+    error_log("Variables de entorno de BD incompletas: host=" . var_export($host, true) . " database=" . var_export($database, true) . " user=" . var_export($username, true));
+    http_response_code(500);
+    exit('Error de configuración del servidor.');
+}
 
 $dsn = "mysql:host={$host};dbname={$database};charset=utf8mb4";
 
