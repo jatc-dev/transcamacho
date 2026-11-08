@@ -1,27 +1,18 @@
 services:
   - type: web
-    name: transcamacho-fuec
-    env: php
-    rootDir: fuec
-    buildCommand: "composer install --no-dev --optimize-autoloader"
-    startCommand: "vendor/bin/heroku-php-apache2 ."
+    name: transcamacho-nextjs
+    env: docker
+    rootDir: .
     envVars:
-      - key: DB_HOST
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: DATABASE_URL
         fromDatabase:
           name: transcamacho-db
-          property: host
-      - key: DB_NAME
-        fromDatabase:
-          name: transcamacho-db
-          property: database
-      - key: DB_USER
-        fromDatabase:
-          name: transcamacho-db
-          property: username
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: transcamacho-db
-          property: password
+          property: connectionString
+    buildArgs:
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
 databases:
   - name: transcamacho-db
     plan: starter
