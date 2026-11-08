@@ -1,7 +1,7 @@
 FROM php:8.2-apache
 
-# Instalar extensiones PHP necesarias
-RUN docker-php-ext-install pdo pdo_mysql
+# Instalar extensiones PHP necesarias para PostgreSQL
+RUN docker-php-ext-install pdo pdo_pgsql
 
 WORKDIR /var/www/html
 
