@@ -8,6 +8,12 @@ services:
         fromDatabase:
           name: transcamacho-db
           property: connectionString
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: '0'
+      - key: APP_URL
+        value: https://transcamacho.onrender.com
 databases:
   - name: transcamacho-db
     plan: starter
