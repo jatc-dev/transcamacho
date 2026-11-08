@@ -1,18 +1,25 @@
 services:
   - type: web
-    name: transcamacho-nextjs
+    name: transcamacho-fuec
     env: docker
     rootDir: .
     envVars:
-      - key: BETTER_AUTH_SECRET
-        generateValue: true
-      - key: DATABASE_URL
+      - key: DB_HOST
         fromDatabase:
           name: transcamacho-db
-          property: connectionString
-    buildArgs:
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-      DATABASE_URL: ${DATABASE_URL}
+          property: host
+      - key: DB_NAME
+        fromDatabase:
+          name: transcamacho-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: transcamacho-db
+          property: username
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: transcamacho-db
+          property: password
 databases:
   - name: transcamacho-db
     plan: starter

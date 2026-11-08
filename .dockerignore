@@ -1,0 +1,14 @@
+.git/
+.gitignore
+.htaccess
+doc/
+u910043597_fuec.sql
+.env
+.env.local
+vendor/
+.idea/
+.vscode/
+.DS_Store
+error_log
+*.pdf
+*.sql

@@ -1,50 +1,23 @@
-# ============================================================
-# Etapa 1: dependencias
-# ============================================================
-FROM node:22-alpine AS deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
+FROM php:8.2-apache
 
-COPY package.json package-lock.json* ./
-RUN npm ci
+# Instalar extensiones PHP necesarias
+RUN docker-php-ext-install pdo pdo_mysql
 
-# ============================================================
-# Etapa 2: builder (aquí se necesita BETTER_AUTH_SECRET)
-# ============================================================
-FROM node:22-alpine AS builder
-WORKDIR /app
+WORKDIR /var/www/html
 
-# Argumentos de construcción que Render inyectará
-ARG BETTER_AUTH_SECRET
-ARG DATABASE_URL
+# Habilitar mod_rewrite para .htaccess
+RUN a2enmod rewrite
 
-# Se convierten en variables de entorno para el proceso de build
-ENV BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
-ENV DATABASE_URL=$DATABASE_URL
-ENV NODE_ENV=production
+# Copiar la aplicación FUEC al document root
+COPY fuec/ /var/www/html/
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# Copiar .htaccess si existe en la raíz (para reglas de SSL/WWW)
+COPY .htaccess /var/www/html/.htaccess 2>/dev/null || true
 
-RUN npx prisma generate && npm run build
+# Permisos
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
 
-# ============================================================
-# Etapa 3: runner (imagen final ligera)
-# ============================================================
-FROM node:22-alpine AS runner
-WORKDIR /app
+EXPOSE 80
 
-ENV NODE_ENV=production
-
-# Variables necesarias también en runtime
-ENV BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
-ENV DATABASE_URL=$DATABASE_URL
-
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/public ./public
-
-EXPOSE 3000
-
-CMD ["npm", "start"]
+CMD ["apache2-foreground"]
