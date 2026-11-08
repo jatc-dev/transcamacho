@@ -1,0 +1,9 @@
+.env
+.env.local
+*.sql
+error_log
+*.pdf
+/vendor/
+.idea/
+.vscode/
+.DS_Store
