@@ -1,32 +1,40 @@
 <?php
-if (isset($_GET['term'])){
-	# conectare la base de datos
- include('./dbcontroller.php');
-$db_handle = new DBController();
+declare(strict_types=1);
 
-$return_arr = array();
+header('Content-Type: application/json; charset=utf-8');
 
-$sqlc = "SELECT * FROM vehiculos WHERE placa like '%".$_GET['term']."%' LIMIT 5";
+include 'conexion.php';
 
-$faq = $db_handle->runQuery($sqlc);
+$return_arr = [];
 
-foreach($faq as $k=>$v) {
-/* Recuperar y almacenar en conjunto los resultados de la consulta.*/		
-	$row_array['value'] = $faq[$k]['placa'];
-	$row_array['buscaplaca']=$faq[$k]['placa']; //para el campo de la busqueda
-	
-	$row_array['idvehi']=$faq[$k]['idvehi'];
-	$row_array['placa']=$faq[$k]['placa'];
-	$row_array['modelo']=$faq[$k]['modelo'];
-	$row_array['marca']=$faq[$k]['marca'];
-	$row_array['clase']=$faq[$k]['clase'];
-	$row_array['numinterno']=$faq[$k]['numinterno'];
-	$row_array['numtarjeta']=$faq[$k]['numtarjeta'];
-	$row_array['emprvehi']=$faq[$k]['emprvehi'];
-	
-	array_push($return_arr,$row_array);
+if (isset($_GET['term']) && $_GET['term'] !== '') {
+    $term = '%' . $_GET['term'] . '%';
+
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM vehiculos WHERE placa LIKE ? LIMIT 5");
+        $stmt->execute([$term]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($rows as $row) {
+            $return_arr[] = [
+                'value'       => $row['placa'] ?? '',
+                'buscaplaca'  => $row['placa'] ?? '',
+                'idvehi'      => $row['idvehi'] ?? '',
+                'placa'       => $row['placa'] ?? '',
+                'modelo'      => $row['modelo'] ?? '',
+                'marca'       => $row['marca'] ?? '',
+                'clase'       => $row['clase'] ?? '',
+                'numinterno'  => $row['numinterno'] ?? '',
+                'numtarjeta'  => $row['numtarjeta'] ?? '',
+                'emprvehi'    => $row['emprvehi'] ?? '',
+            ];
+        }
+    } catch (PDOException $e) {
+        error_log("Error en buscaplaca: " . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(['error' => 'Error al consultar vehículos']);
+        exit;
+    }
 }
-/* Codifica el resultado del array en JSON. */
+
 echo json_encode($return_arr);
-}
-?>

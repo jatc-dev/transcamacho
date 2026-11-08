@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: transcamacho-fuec
+    env: php
+    rootDir: fuec
+    buildCommand: "composer install --no-dev --optimize-autoloader"
+    startCommand: "vendor/bin/heroku-php-apache2 ."
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: transcamacho-db
+          property: host
+      - key: DB_NAME
+        fromDatabase:
+          name: transcamacho-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: transcamacho-db
+          property: username
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: transcamacho-db
+          property: password
+databases:
+  - name: transcamacho-db
+    plan: starter

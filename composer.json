@@ -1,0 +1,25 @@
+{
+  "name": "transcamacho/fuec",
+  "description": "Sistema de gestión de extractos de contrato FUEC - Transcamacho S.A.S.",
+  "type": "project",
+  "license": "proprietary",
+  "require": {
+    "php": "^7.4 || ^8.0"
+  },
+  "require-dev": {},
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "fuec/"
+    }
+  },
+  "scripts": {
+    "post-install-cmd": [
+      "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+    ]
+  }
+}
